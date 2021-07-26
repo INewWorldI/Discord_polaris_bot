@@ -4,6 +4,7 @@ from os import path
 # 봇 설정 파일 생성 및 설정
 
 CONFIG = {
+    'bot_version': '0.1.0',
     'bot_token': 'please enter your token here'
 }
 
@@ -23,5 +24,5 @@ with open('config.yaml', 'r') as cfg:
 token = CONFIG.get('bot_token')
 
 if token is None or len(str(token).strip()) == 0:
-    print("설정 파일 내에 bot_token이 없습니다. ㅇㄹㅇㅇㅇㄴㅁㄹㄹ")    
+    print("설정 파일 내에 bot_token이 없습니다 토큰을 입력해주세요.")    
 
