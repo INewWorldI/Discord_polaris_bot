@@ -6,6 +6,10 @@ from bot import bot
 async def 가위바위보(ctx, *arg):
     const_list = ['가위', '바위', '보']
 
+    if len(arg) != 1:
+        await ctx.send('잘못된 사용법입니다. `$가위바위보 가위` 형태로 입력해주세요.')
+        return
+
     arg = arg[0]
     
     if arg not in const_list:
