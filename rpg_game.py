@@ -1,3 +1,4 @@
+import discord
 import random
 from bot import bot
 
@@ -35,12 +36,9 @@ red_dragon = rpg_mstat(100, 1000, 2500, 350, 0.8, '드래곤 브레스', 550)
 
 @bot.command()
 async def rpg(ctx, *args):
-    await ctx.send('간단하게 구현하는 RPG 게임 시스템 입니다.')
-    await ctx.send('도움말은 없습니다 그냥 적당히 설명듣고 쓰세요')
+    await ctx.send('디스코드 봇으로 간단하게 구현하는 RPG 게임 시스템 입니다.')
 
-    if len(args) < 2:
-        await ctx.send('잘못된 명령어 사용입니다. rpg <CMD> <ARG>')
-        return
-        
-    await ctx.send(args[0])
-    await ctx.send(args[1])
+    if args in 'info':
+        username = bot.get_user()
+        await ctx.send('내 정보를 출력합니다')
+        await ctx.send(f'내 이름 {username}')
