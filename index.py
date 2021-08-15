@@ -2,6 +2,7 @@ from config import CONFIG
 from bot import bot
 import command
 import rpg_game
+import database
 import discord
 import random 
 from discord.ext import commands

@@ -1,5 +1,6 @@
-import random
+import discord
 from bot import bot
+from discord.ext import commands
 
 # 턴제 RPG 게임 구현
 
@@ -34,13 +35,26 @@ eins = rpg_mstat(40, 1500, 0, 0, 0, '섹드립', 0)
 red_dragon = rpg_mstat(100, 1000, 2500, 350, 0.8, '드래곤 브레스', 550)
 
 @bot.command()
-async def rpg(ctx, *args):
-    await ctx.send('간단하게 구현하는 RPG 게임 시스템 입니다.')
-    await ctx.send('도움말은 없습니다 그냥 적당히 설명듣고 쓰세요')
+async def 게임(ctx, *, arg):
+    
+    # 명령어를 완성시키지 못했을 때 도움말 을 치도록 유도
+    if arg in None:
+        await ctx.send('RPG 게임을 시작하시려면 `&게임 도움말`을 입력하세요.')
+    
+    elif arg in '도움말':
+        await ctx.send("""`$게임 정보`: 해당 게임 시스템에 대해서 설명합니다.
+                          `$게임 내정보`: 게임의 내 정보를 확인합니다.
+                          `게임 시스템`: 어쩌구 저쩌구 """)
+    
+    elif arg in '내정보':
+        await ctx.send('가나다라마바사')
 
-    if len(args) < 2:
-        await ctx.send('잘못된 명령어 사용입니다. rpg <CMD> <ARG>')
-        return
-        
-    await ctx.send(args[0])
-    await ctx.send(args[1])
+    
+
+# 만약에 에러가 발생된다면 값을 반환
+@게임.error
+async def rpg_error(ctx, error):
+    if isinstance(error, commands.BadArgument):
+        await ctx.send('잘못된 명령어 사용입니다. `&게임 도움말`을 통해 사용하세요')
+    elif isinstance(error, commands.MissingRequiredArgument):
+        await ctx.send('잘못된 명령어 사용입니다. `&게임 도움말`을 통해 사용하세요')
