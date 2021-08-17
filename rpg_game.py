@@ -1,6 +1,12 @@
+from datetime import date
 import discord
+import sqlite3
 from bot import bot
+from database import conn
 from discord.ext import commands
+
+# 커서 획득
+c = conn.cursor()
 
 # 턴제 RPG 게임 구현
 
@@ -47,7 +53,17 @@ async def 게임(ctx, *, arg):
                           `게임 시스템`: 어쩌구 저쩌구 """)
     
     elif arg in '내정보':
-        await ctx.send('가나다라마바사')
+        c.execute('SELECT * FROM rpg_game_data WHERE uuid')
+        player_id = c.fetchone 
+
+        if ctx.author.member.id == player_id:
+            print(ctx.author.member.id)
+            print('True')
+        
+        else:
+            print(ctx.author.member.id)
+            print('False')
+
 
     
 
