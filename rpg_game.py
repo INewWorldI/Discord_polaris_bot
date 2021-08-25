@@ -63,7 +63,9 @@ async def 게임(ctx, *args):
             await ctx.send('데이터가 있습니다.')
         
         else:
-            await ctx.send('데이터가 없습니다.') 
+            await ctx.send('데이터가 존재하지 않습니다 새 데이터를 생성합니다.')
+            conn.execute("INSERT INTO user_data VALUES(?, ?, ?, ?, ?, ?, ?, ?)", (ctx.message.author.id, 1, 20, 20, 8, 0, 0, 0))
+            await ctx.send('데이터 생성에 성공했습니다 명령어를 다시 작성하세요')
     
 
 # 만약에 에러가 발생된다면 값을 반환
