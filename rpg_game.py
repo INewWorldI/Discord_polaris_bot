@@ -1,6 +1,6 @@
 from datetime import date
+from os import putenv
 import discord
-from database import conn
 from bot import bot
 from database import conn
 from discord.ext import commands
@@ -45,8 +45,6 @@ red_dragon = monstaer_data(100, 1000, 2500, 350, 0.8, '드래곤 브레스', 550
 async def 게임(ctx, *args):
 
     args = args[0]
-
-    print(args)
     
     if args == '도움말':
         await ctx.send("""
@@ -56,20 +54,29 @@ async def 게임(ctx, *args):
     
     elif args == '내정보':
         
-        pid = conn.execute("SELECT * FROM user_data")
+        sql= "SELECT uuid FROM user_data WHERE uuid=?"
+        c.execute(sql, (ctx.message.author.id,))
+        uuid = c.fetchall()
+        print(f'작성자 아이디: {ctx.message.author.id}')
+        print(f'데이터베이스 아이디: {uuid}')
+        c.close()
+
+        if not uuid:
+            await ctx.send('데이터 정보를 불러오지 못했습니다 관리자에게 문의 하세요.')
 
         # uuid 테이블에 유저 데이터가 있는지 체크 없으면 생성
-        if ctx.message.author.id == pid:
-            await ctx.send('데이터가 있습니다.')
+
+        if ctx.message.author.id in uuid:
+             await ctx.send('데이터가 있습니다.')
         
         else:
-            await ctx.send('데이터가 존재하지 않습니다 새 데이터를 생성합니다.')
-            conn.execute("INSERT INTO user_data VALUES(?, ?, ?, ?, ?, ?, ?, ?)", (ctx.message.author.id, 1, 20, 20, 8, 0, 0, 0))
-            await ctx.send('데이터 생성에 성공했습니다 명령어를 다시 작성하세요')
+             await ctx.send('데이터가 존재하지 않습니다 새 데이터를 생성합니다.')
+             conn.execute("INSERT INTO user_data VALUES(?, ?, ?, ?, ?, ?, ?, ?)", (ctx.message.author.id, 1, 20, 20, 8, 0, 0, 0))
+             await ctx.send('데이터 생성에 성공했습니다 명령어를 다시 작성하세요')
     
 
 # 만약에 에러가 발생된다면 값을 반환
-@게임.error
-async def rpg_error(ctx, error):
-    if isinstance(error, commands.CommandError):
-        await ctx.send('잘못된 명령어 사용입니다. `&게임 도움말`을 통해 사용하세요')
+# @게임.error
+# async def rpg_error(ctx, error):
+#     if isinstance(error, commands.CommandError):
+#         await ctx.send('잘못된 명령어 사용입니다. `&게임 도움말`을 통해 사용하세요')
