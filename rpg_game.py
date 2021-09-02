@@ -62,14 +62,14 @@ async def 게임(ctx, *args):
         if not uuid_table:
             await ctx.send('데이터 정보를 불러오지 못했습니다 관리자에게 문의 하세요.')
 
+
         # uuid 테이블에 유저 데이터가 있는지 체크 없으면 생성
 
         if ctx.message.author.id in uuid_data:
 
-            embedVar = discord.Embed(title="Title", description="Desc", color=0x00ff00)
-            embedVar.add_field(name="Field1", value="hi", inline=False)
-            embedVar.add_field(name="Field2", value="hi2", inline=False)
-            await ctx.channel.send(embed=embedVar)
+            embed=discord.Embed(title="Sample Embed", url="https://realdrewdata.medium.com/", description="This is an embed that will show how to build an embed and the different components", color=0xFF5733)
+            embed.set_author(name=f"{ctx.message.author.name}", url="https://twitter.com/RealDrewData", icon_url="https://pbs.twimg.com/profile_images/1327036716226646017/ZuaMDdtm_400x400.jpg")
+            await ctx.send(embed=embed)
 
         else:
              await ctx.send('데이터가 존재하지 않습니다 새 데이터를 생성합니다.')
