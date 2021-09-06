@@ -11,10 +11,19 @@ c.execute('''
 CREATE TABLE IF NOT EXISTS user_data(
     uuid integer PRIMARY KEY,
     ulevel integer,
+    uexp integer,
     uhp integer,
     umana integer,
     uattack integer,
     udefense integer,
-    uskill_name integer, 
-    uskill_damage integer
+    umoney integer
+)''')
+
+c.execute('''
+CREATE TABLE IF NOT EXISTS class_data(
+    class_uuid integer PRIMARY KEY,
+    class_id integer,
+    class_desc text,
+    class_url text null,
+    class_skill_data text null
 )''')
