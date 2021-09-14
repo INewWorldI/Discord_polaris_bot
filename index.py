@@ -4,7 +4,7 @@ import command
 import rpg_game
 import database
 import discord
-from discord.ext import commands
+from nextcord.ext import commands
 
 # 설정 가지고 뭔가 함
 print('config loaded:', CONFIG)

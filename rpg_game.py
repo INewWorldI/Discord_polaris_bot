@@ -4,7 +4,7 @@ from os import putenv
 import discord
 from bot import bot
 from database import conn
-from discord.ext import commands
+from nextcord.ext import commands
 
 # 커서 획득
 c = conn.cursor()
@@ -92,7 +92,7 @@ async def 내정보(ctx):
     if ctx.message.author.id in uuid_data:
 
         # 유저의 아바타 이미지 링크를 임베드에 넣기 위해 설정
-        avatar_url = ctx.message.author.avatar_url
+        avatar_url = ctx.message.author.display_avatar
 
         # 유저 데이터를 데이터베이스에서 가져온다
         stat_sql = "select * from user_data where uuid=?"
@@ -113,8 +113,6 @@ async def 내정보(ctx):
 
         if class_data[1] == 'normal':
             embed.add_field(name="직업" , value="모험가")
-        
-        elif class_data[1] == 'warr':
 
         embed.add_field(name="직업" , value=f"{class_data[2]}")
 
