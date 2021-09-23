@@ -74,46 +74,60 @@ async def 내정보(ctx):
         # 유저의 아바타 이미지 링크를 임베드에 넣기 위해 설정
         avatar_url = ctx.message.author.display_avatar
 
-        # 유저 데이터를 데이터베이스에서 가져온다
-        stat_sql = "select * from user_data where user_uuid=?"
+        # 유저 데이터와 클래스 데이터를 데이터베이스에서 가져온다
+        stat_sql = "select * from user_data inner join class_data on user_data.user_class = class_data.class_id where user_uuid=?"
         c.execute(stat_sql, (ctx.message.author.id,))
         stat_table = c.fetchall()
         stat_data = tuple(*stat_table)
+        print(stat_data)
 
-        # 클래스 데이터를 데이터베이스에서 가져온다
-        class_sql = "select * from user_data where user_class=?"
-        c.execute(class_sql, (ctx.message.author.id,))
-        class_table = c.fetchall()
-        class_data = tuple(*class_table)
-        print(class_data)
+        # 경험치 정보를 출력하기 위해 수치를 가져온다
+        exp_sql = "select * from level_data where level_name=?"
+        c.execute(exp_sql, (stat_data[1] + 1,))
+        exp_table = c.fetchall()
+        exp_data = tuple(*exp_table)
+        print(exp_data)
 
         # 플레이어 정보를 Embed로 출력한다    
         embed=discord.Embed(title=f"[Lv.{stat_data[1]}] {ctx.message.author.name}님의 정보", description="플레이어의 스테이터스 데이터를 표시했습니다.", color=0xFF5733)
         embed.set_author(name=f"{ctx.message.author.name}", icon_url=f"{avatar_url}")
 
-        if class_data[1] == 'normal':
-            embed.add_field(name="직업" , value="모험가")
-
-        embed.add_field(name="직업" , value=f"{class_data[2]}")
+        embed.add_field(name="직업" , value=f"{stat_data[12]}")
 
         embed.add_field(name = chr(173), value = chr(173))
         embed.add_field(name = chr(173), value = chr(173))
-        embed.add_field(name="소지금", value=f"{stat_data[8]}G", inline=True)
+        embed.add_field(name="소지금", value=f"- {stat_data[7]}G", inline=True)
         embed.add_field(name = chr(173), value = chr(173))
         embed.add_field(name = chr(173), value = chr(173))
-        embed.add_field(name="체력", value=f"[ +{stat_data[2]} ]", inline=True)
-        embed.add_field(name="마나", value=f"[ +{stat_data[3]} ]", inline=True)
+        embed.add_field(name="체력", value=f"[ +{stat_data[3]} ]", inline=True)
+        embed.add_field(name="마나", value=f"[ +{stat_data[4]} ]", inline=True)
         embed.add_field(name = chr(173), value = chr(173))
-        embed.add_field(name="공격력", value=f"[ +{stat_data[4]} ]", inline=True)
-        embed.add_field(name="방어력", value=f"[ +{stat_data[5]} ]", inline=True)
-        embed.add_field(name = chr(173), value = chr(173)) 
-        embed.add_field(name="보유스킬", value=f"패치중...", inline=True)
+        embed.add_field(name="공격력", value=f"[ +{stat_data[5]} ]", inline=True)
+        embed.add_field(name="방어력", value=f"[ +{stat_data[6]} ]", inline=True)
+        embed.add_field(name = chr(173), value = chr(173))
+        embed.add_field(name="다음 레벨 필요 경험치", value=f"[EXP]  {stat_data[2]} / {exp_data[1]} ", inline=True)
+        embed.add_field(name = chr(173), value = chr(173))
+        embed.add_field(name = chr(173), value = chr(173))
+        
+        if stat_data[10] == None:
+            embed.add_field(name="장착 아이템", value=f"장착된 아이템이 없습니다.", inline=True)
+        else:
+            embed.add_field(name="장착 아이템", value=f"{stat_data[10]}", inline=True)
+
+        embed.add_field(name = chr(173), value = chr(173))
+        embed.add_field(name = chr(173), value = chr(173))
+
+        if stat_data[9] == None:
+            embed.add_field(name="장착 아이템", value=f"인벤토리에 아이템이 없습니다.", inline=True)
+        else:
+            embed.add_field(name="장착 아이템", value=f"{stat_data[9]}", inline=True)
+
         embed.set_footer(text="현재 폴라리스 판타지는 개발중에 있습니다.")
 
-        if class_data[3] == None:
+        if stat_data[3] == None:
             pass
         else:
-            embed.set_thumbnail(url=f"{class_data[4]}")
+            embed.set_thumbnail(url=f"{stat_data[15]}")
 
         await ctx.send(embed=embed)
 
@@ -129,23 +143,25 @@ async def 내정보(ctx):
 async def 전직(ctx):
     
     # 클래스 데이터를 데이터베이스에서 가져온다
-    class_sql = "select * from class_data where class_uuid=?"
-    c.execute(class_sql, (ctx.message.author.id,))
+    class_sql = "select * from class_data"
+    c.execute(class_sql)
     class_table = c.fetchall()
-    class_data = tuple(*class_table)
-    class_id = class_data[3]
      
 
-    if class_id == 'id_normal':
-        embed=discord.Embed(title=f"직업 전직", description="총 4가지의 직업을 제공 하고 있습니다.", color=0xFF5733)
-        embed.add_field(name = chr(173), value = chr(173))
-        embed.add_field(name = chr(173), value = chr(173))
-        embed.add_field(name="직업 선택" , value=f"아래의 직업설명을 잘 확인하고 선택해주세요!")
-        embed.add_field(name = chr(173), value = chr(173))
-        #embed.add_field(name=f"{user_jobs.id_wa.jobd_name}", value= f"")
-        embed.add_field(name=f"", value= f"")
-        embed.add_field(name=f"", value= f"")
-        embed.add_field(name=f"", value= f"")
+    embed=discord.Embed(title=f"직업 전직", description="총 4가지의 직업을 제공 하고 있습니다 아래의 직업설명을 잘 확인하고 선택해주세요!", color=0xFF5733)
+    embed.add_field(name = chr(173), value = chr(173))
+    embed.add_field(name = chr(173), value = chr(173))
+    embed.add_field(name = f"{class_table[0][1]}", value = f"{class_table[0][2]}", inline=False)
+    embed.add_field(name = chr(173), value = chr(173))
+    embed.add_field(name = f"{class_table[1][1]}", value = f"{class_table[1][2]}", inline=False)
+    embed.add_field(name = chr(173), value = chr(173))
+    embed.add_field(name = f"{class_table[2][1]}", value = f"{class_table[2][2]}", inline=False)
+    embed.add_field(name = chr(173), value = chr(173))
+    embed.add_field(name = f"{class_table[3][1]}", value = f"{class_table[3][2]}", inline=False)
+
+    await ctx.send(embed=embed)
+    
+    
         
 
     
