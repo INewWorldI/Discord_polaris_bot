@@ -17,18 +17,6 @@ class user_level:
         self.level_id = level_id
         self.level_exp = level_exp
 
-# 유저 레벨 구간 설정
-user_level('1', '0')
-user_level('2', '512')
-user_level('3', '1024')
-user_level('4', '2048')
-user_level('5', '4096')
-user_level('6', '8192')
-user_level('7', '16384')
-user_level('8', '32768')
-user_level('9', '65536')
-user_level('10', '131072')
-
 
 # 유저 스킬 클래스
 class skill_data:
@@ -52,14 +40,6 @@ class monstaer_data: # 개체 몬스터 타입 인스턴스 생성
         self.defense = defense
         self.skill_name = skill_name
         self.skill_damage = skill_damage
-    
-# 몬스터 생성
-slime = monstaer_data(level=1, hp=20, mana=40, attack=8, defense=0, skill_name='산성액 분출', skill_damage=20)
-bat = monstaer_data(2, 20, 50, 10, 0.2, '흡혈', 25)
-goblin = monstaer_data(5, 50, 100, 25, 0.4, '난타', 40)
-gargoyle = monstaer_data(20, 100, 170, 50, 0.6, '석화', 250)
-eins = monstaer_data(40, 1500, 0, 0, 0, '섹드립', 0)
-red_dragon = monstaer_data(100, 1000, 2500, 350, 0.8, '드래곤 브레스', 550)
 
 @bot.group()
 async def 게임(ctx):
@@ -81,7 +61,7 @@ async def 도움말(ctx):
 async def 내정보(ctx):
         
     # DB에서 uuid 테이블의 모든 정보를 가져옴
-    uuid_sql= "SELECT uuid FROM user_data WHERE uuid=?"
+    uuid_sql= "SELECT user_uuid FROM user_data WHERE user_uuid=?"
     c.execute(uuid_sql, (ctx.message.author.id,))
     uuid_table = c.fetchall()
     uuid_data = tuple(*uuid_table)
@@ -95,19 +75,19 @@ async def 내정보(ctx):
         avatar_url = ctx.message.author.display_avatar
 
         # 유저 데이터를 데이터베이스에서 가져온다
-        stat_sql = "select * from user_data where uuid=?"
+        stat_sql = "select * from user_data where user_uuid=?"
         c.execute(stat_sql, (ctx.message.author.id,))
         stat_table = c.fetchall()
         stat_data = tuple(*stat_table)
 
         # 클래스 데이터를 데이터베이스에서 가져온다
-        class_sql = "select * from class_data where class_uuid=?"
+        class_sql = "select * from user_data where user_class=?"
         c.execute(class_sql, (ctx.message.author.id,))
         class_table = c.fetchall()
         class_data = tuple(*class_table)
         print(class_data)
 
-            
+        # 플레이어 정보를 Embed로 출력한다    
         embed=discord.Embed(title=f"[Lv.{stat_data[1]}] {ctx.message.author.name}님의 정보", description="플레이어의 스테이터스 데이터를 표시했습니다.", color=0xFF5733)
         embed.set_author(name=f"{ctx.message.author.name}", icon_url=f"{avatar_url}")
 
@@ -137,12 +117,11 @@ async def 내정보(ctx):
 
         await ctx.send(embed=embed)
 
+    # 만약에 데이터가 없다면 데이터를 생성해준다
     else:
         await ctx.send(f'{ctx.message.author.name}님의 데이터가 없습니다 데이터를 생성합니다.')
-        conn.execute("INSERT INTO user_data VALUES(?, ?, ?, ?, ?, ?, ?, ?)", (ctx.message.author.id, 1, 20, 20, 8, 0, 0, 0))
+        conn.execute("INSERT INTO user_data VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (ctx.message.author.id, 1, 0, 100, 40, 10, 0, 0, 'def', None, None))
         await ctx.send(f'유저 데이터 생성 성공!')
-        conn.execute("INSERT INTO class_data VALUES(?, ?, ?, NULL, NULL)", (ctx.message.author.id, 'normal', '모험가를 꿈꾸는 모험가 지망생으로 다양한 적성을 가지고 있다.'))
-        await ctx.send(f'직업 데이터 생성 성공!')
         await ctx.send(f'{ctx.message.author.name}님의 데이터가 성공적으로 생성되었습니다 `$게임 내정보`를 다시 입력해주세요.')
 
 
