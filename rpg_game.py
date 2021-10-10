@@ -144,57 +144,55 @@ async def 내정보(ctx):
 async def 전직(ctx):
     
     # 클래스 데이터를 데이터베이스에서 가져온다
-    class_sql = "select * from class_data"
-    c.execute(class_sql)
+    class_sql = "select class_id, class_name, class_desc, class_icon from class_data where class_id != ?"
+    c.execute(class_sql, ['def'])
     class_table = c.fetchall()
 
-    # 클래스의 스킬 데이터를 데이터베이스에서 가져온다
-    wa_sql = "select skill_name from skill_data where class_id = 'wa'"
-    c.execute(wa_sql)
-    wa_table = c.fetchall()
-    wa_data = tuple(wa_table)
-
-    ar_sql = "select skill_name from skill_data where class_id = 'ar'"
-    c.execute(ar_sql)
-    ar_table = c.fetchall()
-    ar_data = tuple(ar_table)
-
-    as_sql = "select skill_name from skill_data where class_id = 'as'"
-    c.execute(as_sql)
-    as_table = c.fetchall()
-    as_data = tuple(as_table)
-
-    mg_sql = "select skill_name from skill_data where class_id = 'mg'"
-    c.execute(mg_sql)
-    mg_table = c.fetchall()
-    mg_data = tuple(mg_table)
+    def get_class_skills(class_id):
+        sql = "select skill_name, skill_desc from skill_data where class_id = ?"
+        c.execute(sql, [class_id])
+        return c.fetchall()
     
     # 필드값에 '** **'를 넣으면 필드를 보이지 않게 할수 있다.
 
-    embed=discord.Embed(title=f"직업 전직", description="총 4가지의 직업을 제공 하고 있습니다 아래의 직업설명을 잘 확인하고 선택해주세요!", color=0xFF5733)
-    embed.add_field(name = chr(173), value = chr(173))
-    embed.add_field(name = chr(173), value = chr(173))
-    embed.add_field(name = f":crossed_swords: {class_table[0][1]}", value = f"{class_table[0][2]}", inline=False)
-    
-    embed.add_field(name = f"> 스킬 목록", value = "** **", inline=False)
+    await ctx.send(embed=discord.Embed(title=f"직업 전직", description="총 4가지의 직업을 제공 하고 있습니다 아래의 직업설명을 잘 확인하고 선택해주세요!", color=0xFF5733))
+    # embed.add_field(name = chr(173), value = chr(173))
+    # embed.add_field(name = chr(173), value = chr(173))
 
-    for skill_num in range(len(wa_data)):
-        embed.add_field(name = f"** **", value = f"{wa_data[skill_num]}", inline=False)
+    def embed_class(class_table, skills, icon):
+        embed=discord.Embed(title = f"{icon} {class_table[1]}", description = f"{class_table[2]}", color=0xFF5733)
+        skill_list = embed.add_field(name = f"> 스킬 목록", value = "** **", inline=False)
 
-    embed.add_field(name = chr(173), value = chr(173))
-    embed.add_field(name = f":bow_and_arrow: {class_table[1][1]}", value = f"{class_table[1][2]}", inline=False)
-    embed.add_field(name = f"- 스킬 목록", value = f"{class_table[1][3]}", inline=False)
-    embed.add_field(name = chr(173), value = chr(173))
-    embed.add_field(name = f":dagger: {class_table[2][1]}", value = f"{class_table[2][2]}", inline=False)
-    embed.add_field(name = f"- 스킬 목록", value = f"{class_table[2][3]}", inline=False)
-    embed.add_field(name = chr(173), value = chr(173))
-    embed.add_field(name = f":magic_wand: {class_table[3][1]}", value = f"{class_table[3][2]}", inline=False)
-    embed.add_field(name = f"- 스킬 목록", value = f"{class_table[3][3]}", inline=False)
+        for skill in skills:
+            skill_list.add_field(name = skill[0], value = skill[1], inline=False)
+            
+        return embed
 
-    await ctx.send(embed=embed)
+    for clss in class_table:
+        await ctx.send(embed=embed_class(clss, skills=get_class_skills(clss[0]), icon=clss[3]))
+        print(class_table)
+
+    # embed.add_field(name = f":crossed_swords: {class_table[0][1]}", value = f"{class_table[0][2]}", inline=False)
+    
+    # skills = embed.add_field(name = f"> 스킬 목록", value = "** **", inline=False)
+
+    # for skill in wa_data:
+    #     skills.add_field(name = skill[0], value = skill[1], inline=False)
+
+    # embed.add_field(name = chr(173), value = chr(173))
+    # embed.add_field(name = f":bow_and_arrow: {class_table[1][1]}", value = f"{class_table[1][2]}", inline=False)
+    # embed.add_field(name = f"- 스킬 목록", value = f"{class_table[1][3]}", inline=False)
+    # embed.add_field(name = chr(173), value = chr(173))
+    # embed.add_field(name = f":dagger: {class_table[2][1]}", value = f"{class_table[2][2]}", inline=False)
+    # embed.add_field(name = f"- 스킬 목록", value = f"{class_table[2][3]}", inline=False)
+    # embed.add_field(name = chr(173), value = chr(173))
+    # embed.add_field(name = f":magic_wand: {class_table[3][1]}", value = f"{class_table[3][2]}", inline=False)
+    # embed.add_field(name = f"- 스킬 목록", value = f"{class_table[3][3]}", inline=False)
+
+
+    # await ctx.send(embed=embed)
     
     
-        
 
     
     
