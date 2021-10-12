@@ -2,6 +2,7 @@ from asyncio.windows_events import NULL
 from datetime import date
 from os import putenv
 import discord
+from nextcord import message
 from bot import bot
 from database import conn
 from nextcord.ext import commands
@@ -148,6 +149,13 @@ async def 전직(ctx):
     c.execute(class_sql, ['def'])
     class_table = c.fetchall()
 
+    # DB에서 유저의 직업을 가져온후 모험가일 경우 이모지를 통해서 해당 전직표시 이모지를 클릭하면 전직이 진행되도록한다
+    class_sel_sql= "SELECT user_class FROM user_data WHERE user_uuid=?"
+    c.execute(class_sel_sql, (ctx.message.author.id,))
+    class_sel_table = c.fetchall()
+
+    embed=discord.Embed(title = f"", description = f"{class_table[2]}", color=0xFF5733)
+
     def get_class_skills(class_id):
         sql = "select skill_name, skill_desc from skill_data where class_id = ?"
         c.execute(sql, [class_id])
@@ -155,9 +163,16 @@ async def 전직(ctx):
     
     # 필드값에 '** **'를 넣으면 필드를 보이지 않게 할수 있다.
 
-    await ctx.send(embed=discord.Embed(title=f"직업 전직", description="총 4가지의 직업을 제공 하고 있습니다 아래의 직업설명을 잘 확인하고 선택해주세요!", color=0xFF5733))
-    # embed.add_field(name = chr(173), value = chr(173))
-    # embed.add_field(name = chr(173), value = chr(173))
+    embed=discord.Embed(title=f"직업 전직", description="이모지를 클릭해서 직업을 선택할 수 있습니다 \n총 4가지의 직업을 제공 하고 있습니다 아래의 직업설명을 잘 확인하고 선택해주세요!", color=0xFF5733)
+
+    # 각 직업을 선택하는 이모지를 출력한다
+
+    emojis = [class_table[0][3], class_table[1][3], class_table[2][3], class_table[0][3]]
+    
+    for emoji in emojis:
+        embed.add_field(name = emoji, value = "** **")
+
+    await ctx.send(embed=embed)
 
     def embed_class(class_table, skills, icon):
         embed=discord.Embed(title = f"{icon} {class_table[1]}", description = f"{class_table[2]}", color=0xFF5733)
@@ -170,35 +185,35 @@ async def 전직(ctx):
 
     for clss in class_table:
         await ctx.send(embed=embed_class(clss, skills=get_class_skills(clss[0]), icon=clss[3]))
-        print(class_table)
-
-    # embed.add_field(name = f":crossed_swords: {class_table[0][1]}", value = f"{class_table[0][2]}", inline=False)
-    
-    # skills = embed.add_field(name = f"> 스킬 목록", value = "** **", inline=False)
-
-    # for skill in wa_data:
-    #     skills.add_field(name = skill[0], value = skill[1], inline=False)
-
-    # embed.add_field(name = chr(173), value = chr(173))
-    # embed.add_field(name = f":bow_and_arrow: {class_table[1][1]}", value = f"{class_table[1][2]}", inline=False)
-    # embed.add_field(name = f"- 스킬 목록", value = f"{class_table[1][3]}", inline=False)
-    # embed.add_field(name = chr(173), value = chr(173))
-    # embed.add_field(name = f":dagger: {class_table[2][1]}", value = f"{class_table[2][2]}", inline=False)
-    # embed.add_field(name = f"- 스킬 목록", value = f"{class_table[2][3]}", inline=False)
-    # embed.add_field(name = chr(173), value = chr(173))
-    # embed.add_field(name = f":magic_wand: {class_table[3][1]}", value = f"{class_table[3][2]}", inline=False)
-    # embed.add_field(name = f"- 스킬 목록", value = f"{class_table[3][3]}", inline=False)
 
 
-    # await ctx.send(embed=embed)
-    
-    
 
-    
-    
 
 # 만약에 에러가 발생된다면 값을 반환
 # @게임.error
 # async def rpg_error(ctx, error):
 #     if isinstance(error, commands.CommandError):
 #         await ctx.send('잘못된 명령어 사용입니다. `&게임 도움말`을 통해 사용하세요')
+
+@bot.event
+async def on_reaction_add(reaction, user):
+    message = reaction.message
+    emoji = reaction.emoji
+    tank = "<:tank:761252435720667157>"
+    heal = "<:heal:761252937548169246>"
+    dps = "<:dps:761252937066217512>"
+    test = "🙂"
+    if user.bot:
+        return
+
+    if emoji == tank:
+        print ("testtank")
+    elif emoji == heal:
+        print ("testheal")
+    elif emoji == dps:
+        print ("testdps")
+    elif emoji == test:
+        print ("smiley")
+    else:
+        return
+        
