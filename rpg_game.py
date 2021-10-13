@@ -149,11 +149,6 @@ async def 전직(ctx):
     c.execute(class_sql, ['def'])
     class_table = c.fetchall()
 
-    # DB에서 유저의 직업을 가져온후 모험가일 경우 이모지를 통해서 해당 전직표시 이모지를 클릭하면 전직이 진행되도록한다
-    class_sel_sql= "SELECT user_class FROM user_data WHERE user_uuid=?"
-    c.execute(class_sel_sql, (ctx.message.author.id,))
-    class_sel_table = c.fetchall()
-
     embed=discord.Embed(title = f"", description = f"{class_table[2]}", color=0xFF5733)
 
     def get_class_skills(class_id):
@@ -167,10 +162,9 @@ async def 전직(ctx):
 
     # 각 직업을 선택하는 이모지를 출력한다
 
-    emojis = [class_table[0][3], class_table[1][3], class_table[2][3], class_table[0][3]]
-    
-    for emoji in emojis:
-        embed.add_field(name = emoji, value = "** **")
+    message=await ctx.send(embed=embed)
+    for emoji in class_table:
+        await message.add_reaction(f'{emoji[3]}')
 
     await ctx.send(embed=embed)
 
@@ -186,7 +180,27 @@ async def 전직(ctx):
     for clss in class_table:
         await ctx.send(embed=embed_class(clss, skills=get_class_skills(clss[0]), icon=clss[3]))
 
+    async def on_reaction_add(ctx, reaction, user):
+        #ChID = '883239015044775987'
+        #if reaction.message.channel.id != ChID:
+        #    return
 
+        # DB에서 유저의 직업을 가져온후 모험가일 경우 이모지를 통해서 해당 전직표시 이모지를 클릭하면 전직이 진행되도록한다
+        class_sel_sql= "SELECT user_class FROM user_data WHERE user_uuid=?"
+        c.execute(class_sel_sql, (ctx.message.author.id,))
+        class_sel_table = c.fetchall()
+        print(class_sel_table)
+
+        if 'def' in class_sel_table:
+            await ctx.send('당신은 이미 전직 상태 입니다')
+        elif reaction.emoji == '⚔':
+            await ctx.send('전사 전직 버튼을 클릭했습니다')
+        elif reaction.emoji == '🏹':
+            await ctx.send('궁수 전직 버튼을 클릭했습니다')
+        elif reaction.emoji == '🗡':
+            await ctx.send('도적 전직 버튼을 클릭했습니다')
+        elif reaction.emoji == '🪄':
+            await ctx.send('마법사 전직 버튼을 클릭했습니다')
 
 
 # 만약에 에러가 발생된다면 값을 반환
@@ -194,26 +208,4 @@ async def 전직(ctx):
 # async def rpg_error(ctx, error):
 #     if isinstance(error, commands.CommandError):
 #         await ctx.send('잘못된 명령어 사용입니다. `&게임 도움말`을 통해 사용하세요')
-
-@bot.event
-async def on_reaction_add(reaction, user):
-    message = reaction.message
-    emoji = reaction.emoji
-    tank = "<:tank:761252435720667157>"
-    heal = "<:heal:761252937548169246>"
-    dps = "<:dps:761252937066217512>"
-    test = "🙂"
-    if user.bot:
-        return
-
-    if emoji == tank:
-        print ("testtank")
-    elif emoji == heal:
-        print ("testheal")
-    elif emoji == dps:
-        print ("testdps")
-    elif emoji == test:
-        print ("smiley")
-    else:
-        return
         
