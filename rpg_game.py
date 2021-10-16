@@ -129,7 +129,7 @@ async def 내정보(ctx):
         if stat_data[3] == None:
             pass
         else:
-            embed.set_thumbnail(url=f"{stat_data[15]}")
+            embed.set_thumbnail(url=f"{stat_data[14]}")
 
         await ctx.send(embed=embed)
 
@@ -180,27 +180,54 @@ async def 전직(ctx):
     for clss in class_table:
         await ctx.send(embed=embed_class(clss, skills=get_class_skills(clss[0]), icon=clss[3]))
 
-    async def on_reaction_add(ctx, reaction, user):
-        #ChID = '883239015044775987'
-        #if reaction.message.channel.id != ChID:
-        #    return
 
-        # DB에서 유저의 직업을 가져온후 모험가일 경우 이모지를 통해서 해당 전직표시 이모지를 클릭하면 전직이 진행되도록한다
-        class_sel_sql= "SELECT user_class FROM user_data WHERE user_uuid=?"
-        c.execute(class_sel_sql, (ctx.message.author.id,))
-        class_sel_table = c.fetchall()
-        print(class_sel_table)
+@bot.event
+async def on_reaction_add(reaction, user):
 
-        if 'def' in class_sel_table:
-            await ctx.send('당신은 이미 전직 상태 입니다')
-        elif reaction.emoji == '⚔':
-            await ctx.send('전사 전직 버튼을 클릭했습니다')
-        elif reaction.emoji == '🏹':
-            await ctx.send('궁수 전직 버튼을 클릭했습니다')
-        elif reaction.emoji == '🗡':
-            await ctx.send('도적 전직 버튼을 클릭했습니다')
-        elif reaction.emoji == '🪄':
-            await ctx.send('마법사 전직 버튼을 클릭했습니다')
+    emoji = reaction.emoji
+    channel = reaction.message.channel
+
+    if user.bot:
+        return
+
+    class_sel_sql= "SELECT user_class FROM user_data WHERE user_uuid=?"
+    c.execute(class_sel_sql, (user.id,))
+    class_sel_table = c.fetchall()
+
+    if class_sel_table != 'def':
+        await channel.send('당신은 이미 전직을 했습니다')
+
+    if emoji == '⚔':
+        await channel.send('전사 전직 버튼을 클릭했습니다')
+    elif emoji == '🏹':
+        await channel.send('궁수 전직 버튼을 클릭했습니다')
+    elif emoji == '🗡':
+        await channel.send('도적 전직 버튼을 클릭했습니다')
+    elif emoji == '🪄':
+        await channel.send('마법사 전직 버튼을 클릭했습니다')
+
+# async def on_reaction_add(ctx, reaction, user):
+#     ChID = '883239015044775987'
+#     if reaction.message.channel.id != ChID:
+#         return
+
+#     # DB에서 유저의 직업을 가져온후 모험가일 경우 이모지를 통해서 해당 전직표시 이모지를 클릭하면 전직이 진행되도록한다
+#     class_sel_sql= "SELECT user_class FROM user_data WHERE user_uuid=?"
+#     c.execute(class_sel_sql, (ctx.message.author.id,))
+#     class_sel_table = c.fetchall()
+#     print(class_sel_table)
+    
+
+#     if 'def' in class_sel_table:
+#         await ctx.send('이미 전직 상태 입니다')
+#     elif reaction.emoji == '⚔':
+#         await ctx.send('전사 전직 버튼을 클릭했습니다')
+#     elif reaction.emoji == '🏹':
+#         await ctx.send('궁수 전직 버튼을 클릭했습니다')
+#     elif reaction.emoji == '🗡':
+#         await ctx.send('도적 전직 버튼을 클릭했습니다')
+#     elif reaction.emoji == '🪄':
+#         await ctx.send('마법사 전직 버튼을 클릭했습니다')
 
 
 # 만약에 에러가 발생된다면 값을 반환
