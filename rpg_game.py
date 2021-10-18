@@ -81,14 +81,12 @@ async def 내정보(ctx):
         c.execute(stat_sql, (ctx.message.author.id,))
         stat_table = c.fetchall()
         stat_data = tuple(*stat_table)
-        print(stat_data)
 
         # 경험치 정보를 출력하기 위해 수치를 가져온다
         exp_sql = "select * from level_data where level_name=?"
         c.execute(exp_sql, (stat_data[1] + 1,))
         exp_table = c.fetchall()
         exp_data = tuple(*exp_table)
-        print(exp_data)
 
         # 플레이어 정보를 Embed로 출력한다    
         embed=discord.Embed(title=f"[Lv.{stat_data[1]}] {ctx.message.author.name}님의 정보", description="플레이어의 스테이터스 데이터를 표시했습니다.", color=0xFF5733)
@@ -149,8 +147,6 @@ async def 전직(ctx):
     c.execute(class_sql, ['def'])
     class_table = c.fetchall()
 
-    embed=discord.Embed(title = f"", description = f"{class_table[2]}", color=0xFF5733)
-
     def get_class_skills(class_id):
         sql = "select skill_name, skill_desc from skill_data where class_id = ?"
         c.execute(sql, [class_id])
@@ -158,22 +154,20 @@ async def 전직(ctx):
     
     # 필드값에 '** **'를 넣으면 필드를 보이지 않게 할수 있다.
 
-    embed=discord.Embed(title=f"직업 전직", description="이모지를 클릭해서 직업을 선택할 수 있습니다 \n총 4가지의 직업을 제공 하고 있습니다 아래의 직업설명을 잘 확인하고 선택해주세요!", color=0xFF5733)
 
-    # 각 직업을 선택하는 이모지를 출력한다
 
-    message=await ctx.send(embed=embed)
+    embed=discord.Embed(title=f"직업 전직", description="폴라리스 RPG 에서는 총 4가지의 클래스를 제공하고 있습니다. \n직업을 선택하면 각 클래스에 맞는 능력치와 스킬을 부여받습니다. \n클래스 정보를 확인 후 클래스를 선택해주세요", color=0xFF5733)
+
+    message = await ctx.send(embed=embed)
     for emoji in class_table:
         await message.add_reaction(f'{emoji[3]}')
 
-    await ctx.send(embed=embed)
-
     def embed_class(class_table, skills, icon):
-        embed=discord.Embed(title = f"{icon} {class_table[1]}", description = f"{class_table[2]}", color=0xFF5733)
-        skill_list = embed.add_field(name = f"> 스킬 목록", value = "** **", inline=False)
+        embed=discord.Embed(title = f"{icon}  {class_table[1]}", description = f"{class_table[2]}\n", color=0xFF5733)
+        skill_list = embed.add_field(name = f"스킬 목록 ────────────────────", value = "** **\n", inline=False)
 
         for skill in skills:
-            skill_list.add_field(name = skill[0], value = skill[1], inline=False)
+            skill_list.add_field(name = f'[{skill[0]}]', value = f'● {skill[1]}', inline=False)
             
         return embed
 
@@ -181,53 +175,56 @@ async def 전직(ctx):
         await ctx.send(embed=embed_class(clss, skills=get_class_skills(clss[0]), icon=clss[3]))
 
 
+    class_sel_sql= "SELECT user_class FROM user_data WHERE user_uuid=?"
+    c.execute(class_sel_sql, (user.id,))
+    class_sel_table = c.fetchall()
+
+    if class_sel_table[0][0] != 'def':
+        await ctx.send(f'{ctx.message.author.name}님은 이미 전직을 했습니다.')
+        return
+
+    
+    async def embed_class_select(class_name):
+
+        embed=discord.Embed(title = "클래스 선택 확인", description = f"{ctx.message.author.name}님이 선택한 클래스 [{class_name}] 로 정말 전직하시겠습니까? \n선택하면 다시는 변경할 수 없습니다", color=0xFF5733)
+        sel_emojis = ['\U00002B55', '\U0000274C']
+        message = await ctx.send(embed=embed)
+        for sel_emoji in sel_emojis:
+            await message.add_reaction(sel_emoji)
+
+            emoji
+
+
 @bot.event
 async def on_reaction_add(reaction, user):
 
     emoji = reaction.emoji
     channel = reaction.message.channel
+    own_user_id = user.id
 
     if user.bot:
         return
 
-    class_sel_sql= "SELECT user_class FROM user_data WHERE user_uuid=?"
-    c.execute(class_sel_sql, (user.id,))
-    class_sel_table = c.fetchall()
-
-    if class_sel_table != 'def':
-        await channel.send('당신은 이미 전직을 했습니다')
 
     if emoji == '⚔':
-        await channel.send('전사 전직 버튼을 클릭했습니다')
+        await embed_class_select('전사')
     elif emoji == '🏹':
-        await channel.send('궁수 전직 버튼을 클릭했습니다')
+        await embed_class_select('궁수')
     elif emoji == '🗡':
-        await channel.send('도적 전직 버튼을 클릭했습니다')
+        await embed_class_select('도적')
     elif emoji == '🪄':
-        await channel.send('마법사 전직 버튼을 클릭했습니다')
+        await embed_class_select('마법사')
 
-# async def on_reaction_add(ctx, reaction, user):
-#     ChID = '883239015044775987'
-#     if reaction.message.channel.id != ChID:
-#         return
 
-#     # DB에서 유저의 직업을 가져온후 모험가일 경우 이모지를 통해서 해당 전직표시 이모지를 클릭하면 전직이 진행되도록한다
-#     class_sel_sql= "SELECT user_class FROM user_data WHERE user_uuid=?"
-#     c.execute(class_sel_sql, (ctx.message.author.id,))
-#     class_sel_table = c.fetchall()
-#     print(class_sel_table)
-    
+    if own_user_id != user.id:
+            return
 
-#     if 'def' in class_sel_table:
-#         await ctx.send('이미 전직 상태 입니다')
-#     elif reaction.emoji == '⚔':
-#         await ctx.send('전사 전직 버튼을 클릭했습니다')
-#     elif reaction.emoji == '🏹':
-#         await ctx.send('궁수 전직 버튼을 클릭했습니다')
-#     elif reaction.emoji == '🗡':
-#         await ctx.send('도적 전직 버튼을 클릭했습니다')
-#     elif reaction.emoji == '🪄':
-#         await ctx.send('마법사 전직 버튼을 클릭했습니다')
+    if emoji == '\U00002B55':
+        c.execute("UPDATE user_data SET user_class = 'wa' where user_uuid = ?", (user.id,))
+        await channel.send(f'{user.display_name}님은 {class_name}으로 전직했습니다.')
+    elif emoji == '\U0000274C':
+        await channel.send('전직을 취소했습니다.')
+        return
 
 
 # 만약에 에러가 발생된다면 값을 반환
