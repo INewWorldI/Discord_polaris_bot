@@ -147,21 +147,22 @@ async def 전직(ctx):
     c.execute(class_sql, ['def'])
     class_table = c.fetchall()
 
+    # 데이터베이스에서 클래스 아이디를 호출하는 함수
     def get_class_skills(class_id):
         sql = "select skill_name, skill_desc from skill_data where class_id = ?"
         c.execute(sql, [class_id])
         return c.fetchall()
     
+
     # 필드값에 '** **'를 넣으면 필드를 보이지 않게 할수 있다.
-
-
-
     embed=discord.Embed(title=f"직업 전직", description="폴라리스 RPG 에서는 총 4가지의 클래스를 제공하고 있습니다. \n직업을 선택하면 각 클래스에 맞는 능력치와 스킬을 부여받습니다. \n클래스 정보를 확인 후 클래스를 선택해주세요", color=0xFF5733)
 
+    # 순차적으로 데이터베이스 내에 이모지 필드에서 가지고 있는 이모지를 출력시킨다
     message = await ctx.send(embed=embed)
     for emoji in class_table:
         await message.add_reaction(f'{emoji[3]}')
 
+    # 각 클래스별로 클래스 명, 그리고 스킬명을 출력하는 임베드를 순차적으로 출력한다
     def embed_class(class_table, skills, icon):
         embed=discord.Embed(title = f"{icon}  {class_table[1]}", description = f"{class_table[2]}\n", color=0xFF5733)
         skill_list = embed.add_field(name = f"스킬 목록 ────────────────────", value = "** **\n", inline=False)
@@ -175,35 +176,39 @@ async def 전직(ctx):
         await ctx.send(embed=embed_class(clss, skills=get_class_skills(clss[0]), icon=clss[3]))
 
 
-    class_sel_sql= "SELECT user_class FROM user_data WHERE user_uuid=?"
-    c.execute(class_sel_sql, (user.id,))
-    class_sel_table = c.fetchall()
-
-    if class_sel_table[0][0] != 'def':
-        await ctx.send(f'{ctx.message.author.name}님은 이미 전직을 했습니다.')
-        return
-
-    
-    async def embed_class_select(class_name):
-
-        embed=discord.Embed(title = "클래스 선택 확인", description = f"{ctx.message.author.name}님이 선택한 클래스 [{class_name}] 로 정말 전직하시겠습니까? \n선택하면 다시는 변경할 수 없습니다", color=0xFF5733)
-        sel_emojis = ['\U00002B55', '\U0000274C']
-        message = await ctx.send(embed=embed)
-        for sel_emoji in sel_emojis:
-            await message.add_reaction(sel_emoji)
-
-            emoji
-
-
 @bot.event
 async def on_reaction_add(reaction, user):
 
     emoji = reaction.emoji
     channel = reaction.message.channel
-    own_user_id = user.id
+    call_embed_userid = user.id
 
     if user.bot:
         return
+
+
+    # 플레이어의 전직 정보를 데이터베이스에서 가져온다
+    class_sel_sql= "SELECT user_class FROM user_data WHERE user_uuid=?"
+    c.execute(class_sel_sql, (user.id,))
+    class_sel_table = c.fetchall()
+
+
+    # 플레이어의 클래스가 모험가인지 체크하고 모험가가 아니라면 리턴한다.
+    if class_sel_table[0][0] != 'def':
+        await channel.send(f'{user.display_name}님은 이미 전직을 했습니다.')
+        return
+
+    
+    async def embed_class_select(class_name):
+
+        embed=discord.Embed(title = "클래스 선택 확인", description = f"{user.display_name}님이 선택한 클래스 [{class_name}] 으로 정말 전직하시겠습니까? \n선택하면 다시는 변경할 수 없습니다", color=0xFF5733)
+        sel_emojis = ['\U00002B55', '\U0000274C']
+        message = await channel.send(embed=embed)
+        for sel_emoji in sel_emojis:
+            await message.add_reaction(sel_emoji)
+
+    call_class_selectid = user.id
+        
 
 
     if emoji == '⚔':
@@ -215,21 +220,45 @@ async def on_reaction_add(reaction, user):
     elif emoji == '🪄':
         await embed_class_select('마법사')
 
-
-    if own_user_id != user.id:
-            return
+    # 호출한 유저
+    if call_embed_userid != call_class_selectid:
+        await channel.send(f'게임 전직 호출자는 누구? {call_embed_userid}')
+        await channel.send(f'직업 선택 호출자는 누구? {call_class_selectid}')
+        return
 
     if emoji == '\U00002B55':
         c.execute("UPDATE user_data SET user_class = 'wa' where user_uuid = ?", (user.id,))
-        await channel.send(f'{user.display_name}님은 {class_name}으로 전직했습니다.')
+        await channel.send(f'{user.display_name}님은 {class_name}으로 전직을 했습니다.')
     elif emoji == '\U0000274C':
-        await channel.send('전직을 취소했습니다.')
-        return
+        await channel.send(f'{user.display_name}님은 {class_name} 전직을 취소하셨습니다.')
 
+    if class_sel_table[0][0] == 'wa':
+        embed_class_join('전사')
+    elif class_sel_table[0][0] == 'ar':
+        embed_class_join('궁수')
+    elif class_sel_table[0][0] == 'as':
+        embed_class_join('도적')
+    elif class_sel_table[0][0] == 'mg':
+        embed_class_join('마법사')
+
+
+# @bot.check # 모든 전역 명령어에서 작동하는 데코레이터
+# async def check_user_data(ctx):
+#     check_userid_sql= "SELECT user_uuid FROM user_data"
+#     c.execute(check_userid_sql)
+#     check_userid_data = c.fetchall()
+
+#     for check_userid in check_userid_data:
+
+#         print(check_userid)
+#         print(ctx.message.author.id)
+
+#         if ctx.message.author.id not in check_userid:
+#             await ctx.send(f'{ctx.message.author.display_name}님은 데이터가 없습니다 `$게임 내정보`를 입력해서 데이터를 생성해주세요!')
 
 # 만약에 에러가 발생된다면 값을 반환
 # @게임.error
 # async def rpg_error(ctx, error):
 #     if isinstance(error, commands.CommandError):
-#         await ctx.send('잘못된 명령어 사용입니다. `&게임 도움말`을 통해 사용하세요')
+#          await ctx.send('잘못된 명령어 사용입니다. `&게임 도움말`을 통해 사용하세요')
         
