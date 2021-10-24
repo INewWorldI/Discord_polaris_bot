@@ -3,10 +3,13 @@ from datetime import date
 from os import putenv
 import discord
 from nextcord import message
+from nextcord.reaction import Reaction
 from bot import bot
 from database import conn
 from nextcord.ext import commands
 import pandas as pd
+import random
+import asyncio
 
 # 커서 획득
 c = conn.cursor()
@@ -173,18 +176,31 @@ async def 전직(ctx):
         return embed
 
     for clss in class_table:
+        await asyncio.wait([message.add_reaction(sel_emoji) for sel_emoji in sel_emojis])
         await ctx.send(embed=embed_class(clss, skills=get_class_skills(clss[0]), icon=clss[3]))
 
 
+# 데코레이터 = 신택스 슈거
+# syntax sugar = 문법 설탕
+# 부가적인 문법(실제로는 필요하진 않음)으로써 프로그래머를 더 편하게 해주는 문법
+
+# 디자인 패턴 > 데코레이터 패턴
+
+
 @bot.event
-async def on_reaction_add(reaction, user):
+async def on_reaction_add(reaction: Reaction, user):
+
+    # 주어진 reaction, user만 가지고 해당 user가 어떤 메세지에 응답을 해야하는지 알 수 있어야 함
+    # 그래야 어떤 응답을 했는가에 따라 적절한 처리가 가능
+    # = 리엑션을 하긴 했는데 그래서 무슨 상황인가?를 알 수 있어야 함
 
     emoji = reaction.emoji
     channel = reaction.message.channel
-    call_embed_userid = user.id
+    
 
     if user.bot:
         return
+
 
 
     # 플레이어의 전직 정보를 데이터베이스에서 가져온다
@@ -204,42 +220,37 @@ async def on_reaction_add(reaction, user):
         embed=discord.Embed(title = "클래스 선택 확인", description = f"{user.display_name}님이 선택한 클래스 [{class_name}] 으로 정말 전직하시겠습니까? \n선택하면 다시는 변경할 수 없습니다", color=0xFF5733)
         sel_emojis = ['\U00002B55', '\U0000274C']
         message = await channel.send(embed=embed)
+
         for sel_emoji in sel_emojis:
             await message.add_reaction(sel_emoji)
 
-    call_class_selectid = user.id
-        
+    async for user in reaction.users():
+        await channel.send(f'{user} has reacted with {reaction.emoji}!')
+        await channel.send(f'{user.id} has reacted with {reaction.emoji}!')
+        await channel.send(f'{user.nick} has reacted with {reaction.emoji}!')
+
+    async def embed_class_join(class_name):
+
+        if emoji == '\U00002B55':
+            c.execute("UPDATE user_data SET user_class = 'wa' where user_uuid = ?", (user.id,))
+            await channel.send(f'{user.display_name}님은 {class_name}으로 전직을 했습니다.')
+        elif emoji == '\U0000274C':
+            await channel.send(f'{user.display_name}님은 {class_name} 전직을 취소하셨습니다.')
+
 
 
     if emoji == '⚔':
-        await embed_class_select('전사')
+        class_set_wa = '전사'
+        await embed_class_select(class_set_wa)
     elif emoji == '🏹':
-        await embed_class_select('궁수')
+        class_set_ar = '궁수'
+        await embed_class_select(class_set_ar)
     elif emoji == '🗡':
-        await embed_class_select('도적')
+        class_set_as = '도적'
+        await embed_class_select(class_set_as)
     elif emoji == '🪄':
-        await embed_class_select('마법사')
-
-    # 호출한 유저
-    if call_embed_userid != call_class_selectid:
-        await channel.send(f'게임 전직 호출자는 누구? {call_embed_userid}')
-        await channel.send(f'직업 선택 호출자는 누구? {call_class_selectid}')
-        return
-
-    if emoji == '\U00002B55':
-        c.execute("UPDATE user_data SET user_class = 'wa' where user_uuid = ?", (user.id,))
-        await channel.send(f'{user.display_name}님은 {class_name}으로 전직을 했습니다.')
-    elif emoji == '\U0000274C':
-        await channel.send(f'{user.display_name}님은 {class_name} 전직을 취소하셨습니다.')
-
-    if class_sel_table[0][0] == 'wa':
-        embed_class_join('전사')
-    elif class_sel_table[0][0] == 'ar':
-        embed_class_join('궁수')
-    elif class_sel_table[0][0] == 'as':
-        embed_class_join('도적')
-    elif class_sel_table[0][0] == 'mg':
-        embed_class_join('마법사')
+        class_set_mg = '마법사'
+        await embed_class_select(class_set_mg)
 
 
 # @bot.check # 모든 전역 명령어에서 작동하는 데코레이터
